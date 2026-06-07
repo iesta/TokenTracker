@@ -1,0 +1,15 @@
+# Build
+TokenTracker.app/
+*.app/
+.DS_Store
+
+# Temp screenshots
+screenshot_*.png
+
+# Session logs
+session-*.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
