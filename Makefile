@@ -1,5 +1,5 @@
 APP = TokenTracker
-SWIFT_SRCS = src/main.swift
+SWIFT_SRCS = $(shell find src -name "*.swift" | sort)
 swift_flags = -framework AppKit -framework SwiftUI -parse-as-library -target arm64-apple-macosx14.0
 
 build:
