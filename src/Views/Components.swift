@@ -211,7 +211,7 @@ struct DailySpendChart: View {
                             RoundedRectangle(cornerRadius: 2, style: .continuous)
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color(hex: 0x6FCF73), Color(hex: 0x4CAF50)],
+                                        colors: [Color(hex: 0x4ECDC4), Color(hex: 0x2DD4BF)],
                                         startPoint: .top, endPoint: .bottom
                                     )
                                 )
@@ -238,7 +238,7 @@ struct DailySpendChart: View {
                                 .foregroundStyle(.secondary)
                             Text(Fmt.money(sel.cost))
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Color(hex: 0x4CAF50))
+                                .foregroundStyle(Color(hex: 0x2DD4BF))
                         }
                         .padding(.horizontal, 7).padding(.vertical, 4)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
@@ -311,7 +311,7 @@ struct HourlySpendChart: View {
                             RoundedRectangle(cornerRadius: 1.5, style: .continuous)
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color(hex: 0x6FCF73), Color(hex: 0x4CAF50)],
+                                        colors: [Color(hex: 0x4ECDC4), Color(hex: 0x2DD4BF)],
                                         startPoint: .top, endPoint: .bottom
                                     )
                                 )
@@ -334,7 +334,7 @@ struct HourlySpendChart: View {
                                 .foregroundStyle(.secondary)
                             Text(Fmt.money(selData.cost))
                                 .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(Color(hex: 0x4CAF50))
+                                .foregroundStyle(Color(hex: 0x2DD4BF))
                         }
                         .padding(.horizontal, 5)
                         .padding(.vertical, 3)
@@ -369,6 +369,15 @@ struct PieChart: View {
     @State private var selectedIndex: Int?
     @AppStorage("displaySize") private var displaySize = DisplaySize.regular.rawValue
 
+    private let funColors: [Color] = [
+        Color(hex: 0xFF6B6B), Color(hex: 0x4ECDC4), Color(hex: 0xFFE66D),
+        Color(hex: 0xA78BFA), Color(hex: 0xFB923C), Color(hex: 0x34D399),
+        Color(hex: 0xF472B6), Color(hex: 0x60A5FA), Color(hex: 0xFBBF24),
+        Color(hex: 0x818CF8), Color(hex: 0x2DD4BF), Color(hex: 0xF87171),
+    ]
+
+    private func sliceColor(_ idx: Int) -> Color { funColors[idx % funColors.count] }
+
     private var ds: DisplaySize { DisplaySize(rawValue: displaySize) ?? .regular }
     private var donutSize: CGFloat { 180 * ds.fontScale }
     private var innerSize: CGFloat { 70 * ds.fontScale }
@@ -381,7 +390,7 @@ struct PieChart: View {
                     PieSlice(
                         startAngle: startAngle(for: idx),
                         endAngle: endAngle(for: idx),
-                        color: item.color,
+                        color: sliceColor(idx),
                         isSelected: selectedIndex == idx
                     )
                     .onTapGesture {
@@ -394,7 +403,7 @@ struct PieChart: View {
                 if let idx = selectedIndex {
                     let item = data[idx]
                     VStack(spacing: 0) {
-                        Text("\(pct(item.value))%").font(.system(size: 20 * ds.fontScale, weight: .bold)).foregroundStyle(item.color)
+                        Text("\(pct(item.value))%").font(.system(size: 20 * ds.fontScale, weight: .bold)).foregroundStyle(sliceColor(idx))
                         Text("\(Fmt.int(item.value))").font(.system(size: 12 * ds.fontScale, weight: .medium)).foregroundStyle(.secondary)
                     }
                 } else {
@@ -406,7 +415,7 @@ struct PieChart: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(data.prefix(8).enumerated()), id: \.offset) { idx, item in
                     HStack(spacing: 6) {
-                        Circle().fill(item.color).frame(width: 8, height: 8)
+                        Circle().fill(sliceColor(idx)).frame(width: 8, height: 8)
                         Text(item.label).font(.system(size: 10, weight: .medium)).lineLimit(1)
                         Spacer()
                         Text("\(Fmt.int(item.value))").font(.system(size: 9, weight: .bold, design: .rounded)).foregroundStyle(.secondary)

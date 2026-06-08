@@ -123,7 +123,12 @@ private func shortName(_ path: String) -> String {
     }
 
     private func projectColor(_ i: Int) -> Color {
-        let palette: [Color] = [.blue, .purple, .pink, .orange, .teal, .indigo, .green, .red, .cyan, .mint, .yellow, .brown]
+        let palette: [Color] = [
+            Color(hex: 0xFF6B6B), Color(hex: 0x4ECDC4), Color(hex: 0xFFE66D),
+            Color(hex: 0xA78BFA), Color(hex: 0xFB923C), Color(hex: 0x34D399),
+            Color(hex: 0xF472B6), Color(hex: 0x60A5FA), Color(hex: 0xFBBF24),
+            Color(hex: 0x818CF8), Color(hex: 0x2DD4BF), Color(hex: 0xF87171),
+        ]
         return palette[i % palette.count]
     }
 }
@@ -139,13 +144,16 @@ struct ModelsTab: View {
             let maxCost = max(s.models.map { $0.cost }.max() ?? 1, 0.0001)
             VStack(alignment: .leading, spacing: 12) {
                 SectionHeader(title: "Models", trailing: "by cost")
-                VStack(spacing: 12) {
+                PieChart(data: s.models.map { ($0.displayName, $0.count, modelColor($0.name)) })
+                    .frame(height: 220)
+                VStack(spacing: 8) {
                     ForEach(Array(s.models.enumerated()), id: \.element.id) { idx, m in
                         BarRow(rank: idx + 1, icon: "cpu", color: modelColor(m.name),
                                title: m.displayName,
                                subtitle: "\(Fmt.int(m.count)) calls",
                                value: Fmt.money(m.cost),
-                               fraction: m.cost / maxCost)
+                               fraction: m.cost / maxCost,
+                               compact: true)
                         .opacity(flashId == m.name ? 0.2 : 1)
                         .animation(.easeInOut(duration: 0.08), value: flashId)
                         .onTapGesture {
@@ -249,7 +257,12 @@ struct OriginsTab: View {
     }
 
     private func originColor(_ label: String) -> Color {
-        let palette: [Color] = [.blue, .purple, .pink, .orange, .teal, .indigo, .green, .red, .cyan, .mint]
+        let palette: [Color] = [
+            Color(hex: 0xFF6B6B), Color(hex: 0x4ECDC4), Color(hex: 0xFFE66D),
+            Color(hex: 0xA78BFA), Color(hex: 0xFB923C), Color(hex: 0x34D399),
+            Color(hex: 0xF472B6), Color(hex: 0x60A5FA), Color(hex: 0xFBBF24),
+            Color(hex: 0x818CF8), Color(hex: 0x2DD4BF), Color(hex: 0xF87171),
+        ]
         let hash = abs(label.hashValue)
         return palette[hash % palette.count]
     }
