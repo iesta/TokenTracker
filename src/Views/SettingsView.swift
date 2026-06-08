@@ -114,8 +114,8 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
-                    .frame(width: 200)
-                    Text("Large makes the panel 28% wider and taller, with scaled fonts.")
+                    .frame(width: 260)
+                    Text("Large: 28% bigger. XL: 56% bigger panel with scaled fonts.")
                         .font(.system(size: 10))
                         .foregroundStyle(.tertiary)
                 }
