@@ -385,18 +385,18 @@ struct PieChart: View {
                         }
                     }
                 }
-                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: 56, height: 56)
+                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: 72, height: 72)
                 if let idx = selectedIndex {
                     let item = data[idx]
                     VStack(spacing: 0) {
-                        Text("\(pct(item.value))%").font(.system(size: 13, weight: .bold)).foregroundStyle(item.color)
-                        Text("\(Fmt.int(item.value))").font(.system(size: 8, weight: .medium)).foregroundStyle(.secondary)
+                        Text("\(pct(item.value))%").font(.system(size: 15, weight: .bold)).foregroundStyle(item.color)
+                        Text("\(Fmt.int(item.value))").font(.system(size: 9, weight: .medium)).foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("\(Fmt.int(total))").font(.system(size: 13, weight: .bold))
+                    Text("\(Fmt.int(total))").font(.system(size: 15, weight: .bold))
                 }
             }
-            .frame(width: 130, height: 130)
+            .frame(width: 160, height: 160)
 
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(data.prefix(8).enumerated()), id: \.offset) { idx, item in

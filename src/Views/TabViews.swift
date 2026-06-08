@@ -55,7 +55,7 @@ struct TechTab: View {
             VStack(alignment: .leading, spacing: 12) {
                 SectionHeader(title: "Tech Used", trailing: "\(Fmt.int(totalCount)) calls")
                 PieChart(data: s.languages.map { ($0.name, $0.count, $0.color) })
-                    .frame(height: 140)
+                    .frame(height: 170)
                 VStack(spacing: 12) {
                     ForEach(Array(s.languages.enumerated()), id: \.element.id) { idx, l in
                         BarRow(rank: idx + 1, icon: l.symbol, color: l.color, title: l.name,
