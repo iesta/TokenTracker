@@ -150,7 +150,7 @@ final class StatsEngine: ObservableObject {
                 switch src.kind {
                 case .opencodeDB, .openCodeGo:
                     try ingestOpenCodeDB(dbPath: src.path, dayMap: &srcDayMap)
-                case .piSessions, .omPiSessions:
+                case .piSessions, .omPiSessions, .openClawSessions:
                     try ingestPiSessions(dirPath: src.path, dayMap: &srcDayMap)
                 case .hermesSessions:
                     try ingestHermesSessions(dbPath: src.path, dayMap: &srcDayMap)

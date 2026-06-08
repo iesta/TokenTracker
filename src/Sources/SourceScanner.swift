@@ -17,6 +17,7 @@ enum SourceKind: String, Codable {
     case opencodeDB
     case piSessions
     case omPiSessions
+    case openClawSessions
     case hermesSessions
     case openRouter
     case openCodeGo
@@ -85,6 +86,13 @@ enum SourceScanner {
         if FileManager.default.fileExists(atPath: hermesDB), !existingPaths.contains(hermesDB) {
             newlyFound.append(OpenCodeSource(path: hermesDB, label: "Hermes", kind: .hermesSessions, enabled: true))
             existingPaths.insert(hermesDB)
+        }
+
+        // OpenClaw sessions (JSONL format, same as Pi)
+        let openClawDir = home.appendingPathComponent(".openclaw/agents/main/sessions").path
+        if FileManager.default.fileExists(atPath: openClawDir), !existingPaths.contains(openClawDir) {
+            newlyFound.append(OpenCodeSource(path: openClawDir, label: "OpenClaw", kind: .openClawSessions, enabled: true))
+            existingPaths.insert(openClawDir)
         }
 
         let goDB = home.appendingPathComponent(".local/share/opencode-go/opencode.db").path
