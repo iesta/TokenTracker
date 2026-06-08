@@ -70,7 +70,7 @@ extension StatsEngine {
             let modelId = (sData["model_id"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
             if !modelId.isEmpty {
                 agg.modelCost[modelId, default: 0] += (sData["cost"] as? Double ?? 0) * fraction
-                agg.modelCount[modelId, default: 0] += 1
+                agg.modelCount[modelId, default: 0] += dayMsgCount
             }
 
             let projName = sData["project_name"] as? String ?? "global"
