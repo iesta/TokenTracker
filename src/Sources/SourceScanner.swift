@@ -17,6 +17,7 @@ enum SourceKind: String, Codable {
     case opencodeDB
     case piSessions
     case omPiSessions
+    case hermesSessions
     case openRouter
     case openCodeGo
 }
@@ -77,6 +78,13 @@ enum SourceScanner {
         if FileManager.default.fileExists(atPath: ompSessions), !existingPaths.contains(ompSessions) {
             newlyFound.append(OpenCodeSource(path: ompSessions, label: "Oh My Pi", kind: .omPiSessions, enabled: true))
             existingPaths.insert(ompSessions)
+        }
+
+        // Hermes sessions (SQLite state.db)
+        let hermesDB = home.appendingPathComponent(".hermes/state.db").path
+        if FileManager.default.fileExists(atPath: hermesDB), !existingPaths.contains(hermesDB) {
+            newlyFound.append(OpenCodeSource(path: hermesDB, label: "Hermes", kind: .hermesSessions, enabled: true))
+            existingPaths.insert(hermesDB)
         }
 
         let goDB = home.appendingPathComponent(".local/share/opencode-go/opencode.db").path

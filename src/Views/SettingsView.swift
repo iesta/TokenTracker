@@ -22,6 +22,7 @@ enum SettingsPage: Hashable {
         case .source(let s):
             switch s.kind {
             case .piSessions, .omPiSessions: return "brain"
+            case .hermesSessions: return "figure.run"
             case .openRouter: return "network"
             case .openCodeGo: return "arrow.triangle.swap"
             case .opencodeDB: return "externaldrive"
@@ -229,6 +230,7 @@ struct SettingsView: View {
 detailRow("Type", current.kind == .opencodeDB ? "OpenCode DB" :
                             current.kind == .piSessions ? "Pi Sessions (JSONL)" :
                             current.kind == .omPiSessions ? "Oh My Pi Sessions (JSONL)" :
+                            current.kind == .hermesSessions ? "Hermes Sessions (SQLite)" :
                             current.kind == .openRouter ? "OpenRouter API" : "OpenCode Go DB")
                     detailRow("Path", current.path)
                     if current.kind == .opencodeDB || current.kind == .openCodeGo {
