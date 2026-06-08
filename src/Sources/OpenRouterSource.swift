@@ -3,44 +3,47 @@ import Foundation
 extension StatsEngine {
     nonisolated static func ingestOpenRouter(apiKey: String, dayMap: inout [String: DayAgg], mgmtKey: String? = nil) async throws {
         if let mk = mgmtKey, !mk.isEmpty {
-            try await ingestOpenRouterActivity(mgmtKey: mk, dayMap: &dayMap)
+            do {
+                try await ingestOpenRouterActivity(mgmtKey: mk, dayMap: &dayMap)
+            } catch {
+                NSLog("OpenRouter activity failed, falling back to totals: \(error.localizedDescription)")
+                try await ingestOpenRouterTotals(apiKey: apiKey, dayMap: &dayMap)
+            }
         } else {
             try await ingestOpenRouterTotals(apiKey: apiKey, dayMap: &dayMap)
         }
     }
 
     nonisolated static func ingestOpenRouterActivity(mgmtKey: String, dayMap: inout [String: DayAgg]) async throws {
-        var allItems: [[String: Any]] = []
-        var cursor: String?
+        guard let url = URL(string: "https://openrouter.ai/api/v1/activity?limit=200") else { return }
 
-        repeat {
-            var urlStr = "https://openrouter.ai/api/v1/activity?limit=100"
-            if let c = cursor { urlStr += "&cursor=\(c)" }
-            guard let url = URL(string: urlStr) else { break }
+        var req = URLRequest(url: url)
+        req.setValue("Bearer \(mgmtKey)", forHTTPHeaderField: "Authorization")
+        req.timeoutInterval = 15
 
-            var req = URLRequest(url: url)
-            req.setValue("Bearer \(mgmtKey)", forHTTPHeaderField: "Authorization")
-            req.timeoutInterval = 15
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let httpResp = resp as? HTTPURLResponse else {
+            throw NSError(domain: "OpenRouter", code: 0, userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
+        }
+        guard httpResp.statusCode == 200 else {
+            let body = String(data: data, encoding: .utf8) ?? "no body"
+            throw NSError(domain: "OpenRouter", code: httpResp.statusCode, userInfo: [NSLocalizedDescriptionKey: "Status \(httpResp.statusCode): \(body.prefix(200))"])
+        }
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let items = json["data"] as? [[String: Any]] else {
+            throw NSError(domain: "OpenRouter", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON response"])
+        }
 
-            let (data, _) = try await URLSession.shared.data(for: req)
-            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let items = json["data"] as? [[String: Any]] else { break }
+        for item in items {
+            guard let dateStr = item["date"] as? String, dateStr.count >= 10 else { continue }
+            let day = String(dateStr.prefix(10))
 
-            allItems.append(contentsOf: items)
-            cursor = json["cursor"] as? String
-        } while cursor != nil && !cursor!.isEmpty
-
-        for item in allItems {
-            guard let ts = item["created_at"] as? String, ts.count >= 10 else { continue }
-            let day = String(ts.prefix(10))
-            let hourStr = ts.count >= 16 ? String(ts[ts.index(ts.startIndex, offsetBy: 11)..<ts.index(ts.startIndex, offsetBy: 13)]) : "0"
-            let hour = Int(hourStr) ?? 0
-
-            let cost = item["cost"] as? Double ?? 0
+            let cost = item["usage"] as? Double ?? 0
             let model = item["model"] as? String ?? "unknown"
-            let tokensIn = item["tokens_prompt"] as? Int ?? 0
-            let tokensOut = item["tokens_completion"] as? Int ?? 0
-            let tokensReasoning = item["tokens_reasoning"] as? Int ?? 0
+            let tokensIn = item["prompt_tokens"] as? Int ?? 0
+            let tokensOut = item["completion_tokens"] as? Int ?? 0
+            let reasoningTokens = item["reasoning_tokens"] as? Int ?? 0
+            let requests = item["requests"] as? Int ?? 1
 
             if cost <= 0, tokensIn == 0, tokensOut == 0 { continue }
 
@@ -48,18 +51,13 @@ extension StatsEngine {
             agg.cost += cost
             agg.inputTokens += tokensIn
             agg.outputTokens += tokensOut
-            agg.reasoningTokens += tokensReasoning
+            agg.reasoningTokens += reasoningTokens
             agg.modelCost[model, default: 0] += cost
             agg.modelCount[model, default: 0] += 1
-            let sid = "openrouter:\(item["id"] as? String ?? "gen")"
-            if !agg.sessionIds.contains(sid) { agg.sessionIds.append(sid) }
+            agg.messages += requests
 
-            var ha = agg.hours[hour] ?? HourlyAgg()
-            ha.cost += cost
-            ha.inputTokens += tokensIn
-            ha.outputTokens += tokensOut
-            ha.messages += 1
-            agg.hours[hour] = ha
+            let sid = "openrouter:\(model)-\(day)"
+            if !agg.sessionIds.contains(sid) { agg.sessionIds.append(sid) }
 
             dayMap[day] = agg
         }

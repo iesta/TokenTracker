@@ -252,6 +252,7 @@ detailRow("Type", current.kind == .opencodeDB ? "OpenCode DB" :
                             if let idx = sources.firstIndex(where: { $0.id == current.id }) {
                                 sources[idx].apiKey = newKey
                                 SourceScanner.storedSources = sources
+                                NotificationCenter.default.post(name: .sourcesChanged, object: nil)
                             }
                         }
                         Divider().padding(.vertical, 4)
@@ -261,6 +262,7 @@ detailRow("Type", current.kind == .opencodeDB ? "OpenCode DB" :
                             if let idx = sources.firstIndex(where: { $0.id == current.id }) {
                                 sources[idx].mgmtKey = newKey
                                 SourceScanner.storedSources = sources
+                                NotificationCenter.default.post(name: .sourcesChanged, object: nil)
                             }
                         }
                     }
