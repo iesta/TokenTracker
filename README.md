@@ -1,74 +1,101 @@
 # TokenTracker
 
-A macOS menu bar app that tracks AI coding tool usage from local databases. Displays costs, tokens, models, projects, languages, and origin breakdowns across multiple sources.
+A macOS menu bar app that tracks AI coding tool usage from local databases. Displays costs, tokens, models, projects, languages, and per-origin breakdowns across multiple sources.
+
+<p float="left">
+  <img src="docs/screenshot_overview.png" width="250" alt="Popover overview" />
+  <img src="docs/screenshot_prefs.png" width="320" alt="Preferences window" />
+</p>
 
 ## Features
 
-- **Menu bar cost display** — shows total cost for the selected time range (1d / 7d / 30d / 3m / All)
-- **Popover panel** with 6 tabs:
-  - Overview — cost summary, daily spend chart, top model
+- **Menu bar cost** — shows total spend for the selected time range (1d / 7d / 30d / 3m / All)
+- **6 tabs** in the popover panel:
+  - Overview — cost cards, daily or hourly spend chart, top model
   - Tech — language breakdown by tool call count
-  - Projects — project costs with copy-on-tap + double-blink feedback
-  - Models — model costs with copy-on-tap + double-blink feedback
+  - Projects — project costs with tap-to-copy + double-blink
+  - Models — model costs with tap-to-copy + double-blink
   - Usage — token distribution (input, output, reasoning, cache)
-  - Origins — per-source breakdown (appears when 2+ sources active)
-- **Multi-source support** — scans for data from:
-  - OpenCode (local SQLite)
-  - Pi Agent (JSONL sessions)
-  - OpenCode Go
-  - OpenRouter (via API key)
-- **Per-source aggregation** — data from each source is collected separately, then merged by day
-- **Message-level attribution** — costs and tokens are distributed proportionally across days based on message timestamps, so ongoing sessions spanning multiple days are correctly attributed
-- **Live currency conversion** — rates fetched from Frankfurter API, cached, refreshable
+  - Origins — per-source breakdown (appears with 2+ sources)
+- **Hourly chart** in 1d view — see spend broken down by hour
+- **Multi-source** — data from OpenCode, Pi, Oh My Pi, OpenClaw, Hermes, OpenRouter, and more
+- **Message-level attribution** — costs distributed proportionally across days by message timestamp
+- **Live currency** — rates from Frankfurter API, cached with hourly refresh
 - **Auto-refresh** — rescans every 60 seconds
 
 ## Requirements
 
-- macOS 14.0+ (arm64)
-- [opencode](https://opencode.ai) (for its local database)
+- macOS 14.0+ (Apple Silicon or Intel)
+- At least one supported AI tool to track
 
 ## Build
 
 ```bash
-make build   # compiles with swiftc
-make run     # builds + launches
+make build   # compile with swiftc
+make run     # build + launch
 ```
 
-No Xcode or SPM required — single-file SwiftUI + AppKit app (~2300 lines).
-
-## Settings
-
-The preferences window provides a macOS-style sidebar with:
-
-- **General** — app behavior info
-- **Currencies** — pick a display currency, custom rate, live update button
-- **Data** — toggle discovered sources on/off, rescan for new ones
-- **One tab per source** — path, size, last modified, enable/disable, API key (OpenRouter)
-- **About** — version info
+No Xcode needed — single-project SwiftUI + AppKit, compiled via Makefile.
 
 ## Data Sources
 
-| Source | Format | Location / Method |
+| Source | Format | Location |
 |---|---|---|
 | OpenCode | SQLite | `~/.local/share/opencode/opencode.db` |
 | Pi Agent | JSONL | `~/.pi/agent/sessions/` |
+| Oh My Pi | JSONL | `~/.omp/agent/sessions/` |
+| OpenClaw | JSONL | `~/.openclaw/agents/main/sessions/` |
+| Hermes | SQLite | `~/.hermes/state.db` |
+| OpenRouter | REST API | `api.openrouter.ai` (API key + optional mgmt key) |
 | OpenCode Go | SQLite | `~/.local/share/opencode-go/opencode.db` |
-| OpenRouter | API | `https://openrouter.ai/api/v1/auth/key` (API key required) |
 
-Sources are auto-detected on launch. Enable or disable any source from the Data tab.
+Sources are auto-detected on each launch. Toggle any source on/off from Settings → Sources.
 
-## Keyboard
+## Preferences
 
-| Shortcut | Action |
+The macOS-style sidebar preferences window (720×560):
+
+- **General** — app info, auto-refresh details
+- **Currencies** — pick display currency, custom rate, live update button
+- **Sources** — list of discovered sources with on/off toggles and Rescan
+- **One tab per source** — path, size, last modified, enable/disable, API key fields
+- **About** — version
+
+## Shortcuts
+
+| Key | Action |
 |---|---|
+| Click menu bar icon | Toggle panel |
 | `⌘,` | Open Preferences |
 | `⌘Q` | Quit |
+| `Esc` | Close panel |
 
-## How it works
+## Architecture
 
-TokenTracker queries `/usr/bin/sqlite3 -json` with piped SQL (for SQLite sources), reads JSONL files (for Pi), or fetches from REST APIs (for OpenRouter). Results are collected per-source into separate day maps, then merged into a single daily aggregate. Each day's data includes costs, tokens, messages, models, projects, and languages.
+TokenTracker is a single-file SwiftUI + AppKit project split into 13 source files under `src/`:
 
-The merged aggregate is cached to `~/.local/share/opencode/trackercache.json` keyed by source modification time. The cache invalidates automatically when any source changes.
+```
+src/
+  main.swift              — AppDelegate, PopoverView, panel, entry point
+  Models.swift            — DayAgg, Aggregate, StatsSummary, TimeRange
+  Engine.swift            — StatsEngine, buildAggregate, summarize, queryDB
+  Sources/
+    SourceScanner.swift   — source auto-detection and persistence
+    OpenCodeSource.swift  — opencode SQLite ingester
+    PiSource.swift        — Pi / Oh My Pi / OpenClaw JSONL ingester
+    HermesSource.swift    — Hermes SQLite ingester
+    OpenRouterSource.swift — OpenRouter REST API ingester
+  Views/
+    Components.swift      — BarRow, StatCard, DailySpendChart, HourlySpendChart
+    TabViews.swift        — Overview, Tech, Projects, Models, Usage, Origins
+    SettingsView.swift    — sidebar preferences
+  Utils/
+    Currency.swift        — SettingsStore, CurrencyRates, defaultCurrencies
+    Formatting.swift      — Fmt helpers, Color hex, TTIcon
+    LanguageMap.swift     — extension → language mapping
+```
+
+Each data source has its own `ingest*` function that reads from its native format (SQLite via piped `/usr/bin/sqlite3 -json`, JSONL stream parsing, or REST API) and produces the same `DayAgg` structure. Results are merged into a per-source day map, cached to `~/.local/share/opencode/trackercache.json`, and filtered/summarised on request.
 
 ## License
 
