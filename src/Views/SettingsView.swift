@@ -67,6 +67,7 @@ struct SettingsView: View {
         }
         .frame(width: 720, height: 560)
         .onAppear {
+            CurrencyRates.restoreCurrentRate()
             customRate = String(format: "%.4f", SettingsStore.currencyRate)
             lastFetchText = CurrencyRates.lastFetchLabel
         }

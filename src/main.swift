@@ -214,6 +214,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = SourceScanner.scan()
         engine.load()
         CurrencyRates.fetchIfNeeded()
+        CurrencyRates.restoreCurrentRate()
 
         NotificationCenter.default.addObserver(forName: .sourcesChanged, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
@@ -223,6 +224,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
             CurrencyRates.fetchIfNeeded()
+            CurrencyRates.restoreCurrentRate()
         }
 
         startTitleSync()

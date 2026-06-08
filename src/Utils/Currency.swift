@@ -58,6 +58,16 @@ enum CurrencyRates {
         Task { await fetch() }
     }
 
+    static func restoreCurrentRate() {
+        let code = SettingsStore.currencyCode
+        if code == "USD" { SettingsStore.currencyRate = 1.0; return }
+        if let live = cachedRates[code], live > 0 {
+            SettingsStore.currencyRate = live
+        } else if let match = defaultCurrencies.first(where: { $0.code == code }) {
+            SettingsStore.currencyRate = match.rate
+        }
+    }
+
     static func fetch() async {
         guard let url = URL(string: "https://api.frankfurter.app/latest?from=USD") else { return }
         do {
