@@ -362,3 +362,100 @@ struct HourlySpendChart: View {
         }
     }
 }
+
+struct PieChart: View {
+    let data: [(label: String, value: Int, color: Color)]
+    @State private var selectedIndex: Int?
+
+    private var total: Int { data.reduce(0) { $0 + $1.value } }
+
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                ForEach(Array(data.enumerated()), id: \.offset) { idx, item in
+                    PieSlice(
+                        startAngle: startAngle(for: idx),
+                        endAngle: endAngle(for: idx),
+                        color: item.color,
+                        isSelected: selectedIndex == idx
+                    )
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            selectedIndex = selectedIndex == idx ? nil : idx
+                        }
+                    }
+                }
+                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: 56, height: 56)
+                if let idx = selectedIndex {
+                    let item = data[idx]
+                    VStack(spacing: 0) {
+                        Text("\(pct(item.value))%").font(.system(size: 13, weight: .bold)).foregroundStyle(item.color)
+                        Text("\(Fmt.int(item.value))").font(.system(size: 8, weight: .medium)).foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("\(Fmt.int(total))").font(.system(size: 13, weight: .bold))
+                }
+            }
+            .frame(width: 130, height: 130)
+
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(data.prefix(8).enumerated()), id: \.offset) { idx, item in
+                    HStack(spacing: 6) {
+                        Circle().fill(item.color).frame(width: 8, height: 8)
+                        Text(item.label).font(.system(size: 10, weight: .medium)).lineLimit(1)
+                        Spacer()
+                        Text("\(Fmt.int(item.value))").font(.system(size: 9, weight: .bold, design: .rounded)).foregroundStyle(.secondary)
+                    }
+                    .opacity(selectedIndex == nil || selectedIndex == idx ? 1 : 0.4)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.15)) { selectedIndex = selectedIndex == idx ? nil : idx }
+                    }
+                }
+                if data.count > 8 {
+                    Text("+ \(data.count - 8) more...").font(.system(size: 9)).foregroundStyle(.tertiary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func startAngle(for idx: Int) -> Angle {
+        let sum = data[0..<idx].reduce(0) { $0 + $1.value }
+        return .degrees(Double(sum) / Double(max(total, 1)) * 360 - 90)
+    }
+
+    private func endAngle(for idx: Int) -> Angle {
+        let sum = data[0...idx].reduce(0) { $0 + $1.value }
+        return .degrees(Double(sum) / Double(max(total, 1)) * 360 - 90)
+    }
+
+    private func pct(_ v: Int) -> String {
+        String(format: "%.0f", Double(v) / Double(max(total, 1)) * 100)
+    }
+}
+
+struct PieSlice: View {
+    let startAngle: Angle
+    let endAngle: Angle
+    let color: Color
+    let isSelected: Bool
+
+    var body: some View {
+        GeometryReader { geo in
+            let mid = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+            let r = min(geo.size.width, geo.size.height) / 2
+            Path { p in
+                p.move(to: mid)
+                p.addArc(center: mid, radius: r,
+                         startAngle: startAngle, endAngle: endAngle,
+                         clockwise: false)
+                p.closeSubpath()
+            }
+            .fill(color)
+            .opacity(isSelected ? 1 : 0.75)
+            .scaleEffect(isSelected ? 1.04 : 1)
+            .animation(.easeOut(duration: 0.12), value: isSelected)
+        }
+    }
+}
