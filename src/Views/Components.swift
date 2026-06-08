@@ -102,37 +102,38 @@ struct BarRow: View {
     let subtitle: String
     let value: String
     let fraction: Double
+    var compact: Bool = false
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: compact ? 8 : 10) {
             ZStack {
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                RoundedRectangle(cornerRadius: compact ? 5 : 7, style: .continuous)
                     .fill(color.opacity(0.16))
-                    .frame(width: 28, height: 28)
+                    .frame(width: compact ? 22 : 28, height: compact ? 22 : 28)
                 Image(systemName: icon)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: compact ? 10 : 13, weight: .semibold))
                     .foregroundStyle(color)
             }
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: compact ? 2 : 4) {
                 HStack {
                     Text(title)
-                        .font(.system(size: 12.5, weight: .semibold))
+                        .font(.system(size: compact ? 11 : 12.5, weight: .semibold))
                         .lineLimit(1)
                     Spacer(minLength: 6)
                     Text(value)
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.system(size: compact ? 11 : 12, weight: .bold, design: .rounded))
                         .foregroundStyle(.primary)
                 }
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Color.primary.opacity(0.06)).frame(height: 5)
+                        Capsule().fill(Color.primary.opacity(0.06)).frame(height: compact ? 3 : 5)
                         Capsule().fill(color)
-                            .frame(width: max(4, geo.size.width * fraction), height: 5)
+                            .frame(width: max(4, geo.size.width * fraction), height: compact ? 3 : 5)
                     }
                 }
-                .frame(height: 5)
+                .frame(height: compact ? 3 : 5)
                 Text(subtitle)
-                    .font(.system(size: 10.5))
+                    .font(.system(size: compact ? 9 : 10.5))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -385,18 +386,18 @@ struct PieChart: View {
                         }
                     }
                 }
-                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: 72, height: 72)
+                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: 80, height: 80)
                 if let idx = selectedIndex {
                     let item = data[idx]
                     VStack(spacing: 0) {
-                        Text("\(pct(item.value))%").font(.system(size: 15, weight: .bold)).foregroundStyle(item.color)
-                        Text("\(Fmt.int(item.value))").font(.system(size: 9, weight: .medium)).foregroundStyle(.secondary)
+                        Text("\(pct(item.value))%").font(.system(size: 17, weight: .bold)).foregroundStyle(item.color)
+                        Text("\(Fmt.int(item.value))").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("\(Fmt.int(total))").font(.system(size: 15, weight: .bold))
+                    Text("\(Fmt.int(total))").font(.system(size: 17, weight: .bold))
                 }
             }
-            .frame(width: 160, height: 160)
+            .frame(width: 190, height: 190)
 
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(data.prefix(8).enumerated()), id: \.offset) { idx, item in
