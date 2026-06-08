@@ -18,6 +18,7 @@ enum SourceKind: String, Codable {
     case piSessions
     case omPiSessions
     case openClawSessions
+    case clineSessions
     case hermesSessions
     case openRouter
     case openCodeGo
@@ -93,6 +94,13 @@ enum SourceScanner {
         if FileManager.default.fileExists(atPath: openClawDir), !existingPaths.contains(openClawDir) {
             newlyFound.append(OpenCodeSource(path: openClawDir, label: "OpenClaw", kind: .openClawSessions, enabled: true))
             existingPaths.insert(openClawDir)
+        }
+
+        // Cline sessions (SQLite sessions.db)
+        let clineDB = home.appendingPathComponent(".cline/data/db/sessions.db").path
+        if FileManager.default.fileExists(atPath: clineDB), !existingPaths.contains(clineDB) {
+            newlyFound.append(OpenCodeSource(path: clineDB, label: "Cline", kind: .clineSessions, enabled: true))
+            existingPaths.insert(clineDB)
         }
 
         let goDB = home.appendingPathComponent(".local/share/opencode-go/opencode.db").path

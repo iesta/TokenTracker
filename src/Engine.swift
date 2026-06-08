@@ -154,6 +154,8 @@ final class StatsEngine: ObservableObject {
                     try ingestPiSessions(dirPath: src.path, dayMap: &srcDayMap)
                 case .hermesSessions:
                     try ingestHermesSessions(dbPath: src.path, dayMap: &srcDayMap)
+                case .clineSessions:
+                    try ingestClineSessions(dbPath: src.path, dayMap: &srcDayMap)
                 case .openRouter:
                     if let key = src.apiKey, !key.isEmpty {
                         try await ingestOpenRouter(apiKey: key, dayMap: &srcDayMap, mgmtKey: src.mgmtKey)

@@ -24,6 +24,7 @@ enum SettingsPage: Hashable {
             case .piSessions, .omPiSessions: return "brain"
             case .hermesSessions: return "figure.run"
             case .openClawSessions: return "pawprint"
+            case .clineSessions: return "terminal"
             case .openRouter: return "network"
             case .openCodeGo: return "arrow.triangle.swap"
             case .opencodeDB: return "externaldrive"
@@ -253,6 +254,7 @@ detailRow("Type", current.kind == .opencodeDB ? "OpenCode DB" :
                             current.kind == .piSessions ? "Pi Sessions (JSONL)" :
                             current.kind == .omPiSessions ? "Oh My Pi Sessions (JSONL)" :
                             current.kind == .openClawSessions ? "OpenClaw Sessions (JSONL)" :
+                            current.kind == .clineSessions ? "Cline Sessions (SQLite)" :
                             current.kind == .hermesSessions ? "Hermes Sessions (SQLite)" :
                             current.kind == .openRouter ? "OpenRouter API" : "OpenCode Go DB")
                     detailRow("Path", current.path)
