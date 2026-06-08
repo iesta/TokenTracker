@@ -31,6 +31,7 @@ struct Aggregate: Codable {
     var days: [DayAgg]
     var generatedAt: Date
     var sourceSummaries: [String: SourceSummary] = [:]
+    var perSourceDays: [String: [DayAgg]] = [:]
 }
 
 struct SourceSummary: Codable, Identifiable {

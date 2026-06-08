@@ -42,9 +42,46 @@ final class StatsEngine: ObservableObject {
 
     private var days: [DayAgg] = []
     private var sourceSummaries: [String: SourceSummary] = [:]
+    private var perSourceDays: [String: [DayAgg]] = [:]
 
     var origins: [SourceSummary] {
         sourceSummaries.values.sorted { $0.totalCost > $1.totalCost }
+    }
+
+    func origins(for range: TimeRange) -> [SourceSummary] {
+        let cal = Calendar.current
+        let dayFmt: DateFormatter = {
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.timeZone = TimeZone.current
+            f.dateFormat = "yyyy-MM-dd"
+            return f
+        }()
+
+        guard !perSourceDays.isEmpty else { return origins }
+
+        var result: [SourceSummary] = []
+        for (label, srcDays) in perSourceDays {
+            let filtered: [DayAgg]
+            if let nDays = range.days {
+                let offset = -(nDays - 1)
+                let cutoff = cal.date(byAdding: .day, value: offset, to: cal.startOfDay(for: Date()))!
+                filtered = srcDays.filter { d in
+                    guard let dt = dayFmt.date(from: d.date) else { return false }
+                    return dt >= cutoff
+                }
+            } else {
+                filtered = srcDays
+            }
+            guard !filtered.isEmpty else { continue }
+            let totalCost = filtered.reduce(0) { $0 + $1.cost }
+            let totalTokens = filtered.reduce(0) { $0 + $1.inputTokens + $1.outputTokens + $1.reasoningTokens + $1.cacheRead + $1.cacheWrite }
+            let sessionCount = Set(filtered.flatMap { $0.sessionIds }).count
+            let messageCount = filtered.reduce(0) { $0 + $1.messages }
+            let kind = sourceSummaries[label]?.kind ?? ""
+            result.append(SourceSummary(label: label, kind: kind, totalCost: totalCost, totalTokens: totalTokens, sessionCount: sessionCount, messageCount: messageCount, dayCount: filtered.count))
+        }
+        return result.sorted { $0.totalCost > $1.totalCost }
     }
 
     nonisolated static var cacheURL: URL {
@@ -67,6 +104,7 @@ final class StatsEngine: ObservableObject {
                 await MainActor.run {
                     self.days = agg.days
                     self.sourceSummaries = agg.sourceSummaries
+                    self.perSourceDays = agg.perSourceDays
                     self.lastUpdated = agg.generatedAt
                     self.loading = false
                     self.progress = 1
@@ -151,6 +189,12 @@ final class StatsEngine: ObservableObject {
 
         let days = dayMap.keys.sorted().compactMap { dayMap[$0] }
 
+        // Convert perSourceDayMaps to sorted arrays for cache
+        var perSourceDays: [String: [DayAgg]] = [:]
+        for (label, dayMap) in perSourceDayMaps {
+            perSourceDays[label] = dayMap.keys.sorted().compactMap { dayMap[$0] }
+        }
+
         var sourceSummaries: [String: SourceSummary] = [:]
         for src in sources {
             guard let srcMap = perSourceDayMaps[src.label], !srcMap.isEmpty else { continue }
@@ -170,7 +214,7 @@ final class StatsEngine: ObservableObject {
             )
         }
 
-        let agg = Aggregate(dbSignature: sig, days: days, generatedAt: Date(), sourceSummaries: sourceSummaries)
+        let agg = Aggregate(dbSignature: sig, days: days, generatedAt: Date(), sourceSummaries: sourceSummaries, perSourceDays: perSourceDays)
         if let data = try? JSONEncoder().encode(agg) {
             try? data.write(to: cacheURL, options: .atomic)
         }

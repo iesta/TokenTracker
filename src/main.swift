@@ -144,7 +144,7 @@ struct PopoverView: View {
     }
 
     private var visibleTabs: [Tab] {
-        Tab.allCases.filter { $0 != .origins || engine.origins.count > 1 }
+        Tab.allCases.filter { $0 != .origins || engine.origins(for: range).count > 1 }
     }
 
     // MARK: Content
@@ -156,7 +156,7 @@ struct PopoverView: View {
         case .projects: ProjectsTab(s: summary)
         case .models: ModelsTab(s: summary)
         case .usage: UsageTab(s: summary)
-        case .origins: OriginsTab(origins: engine.origins)
+        case .origins: OriginsTab(origins: engine.origins(for: range))
         }
     }
 
