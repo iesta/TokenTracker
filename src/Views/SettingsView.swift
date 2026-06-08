@@ -21,7 +21,7 @@ enum SettingsPage: Hashable {
         case .data: return "cylinder"
         case .source(let s):
             switch s.kind {
-            case .piSessions: return "brain"
+            case .piSessions, .omPiSessions: return "brain"
             case .openRouter: return "network"
             case .openCodeGo: return "arrow.triangle.swap"
             case .opencodeDB: return "externaldrive"
@@ -63,7 +63,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(NSColor.controlBackgroundColor))
         }
-        .frame(width: 640, height: 500)
+        .frame(width: 720, height: 560)
         .onAppear {
             customRate = String(format: "%.4f", SettingsStore.currencyRate)
             lastFetchText = CurrencyRates.lastFetchLabel
@@ -97,8 +97,10 @@ struct SettingsView: View {
                 }
                 .padding(8)
             }
+            Spacer()
         }
         .padding(24)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var currenciesPane: some View {
@@ -153,9 +155,9 @@ struct SettingsView: View {
                 }
             }
             .padding(12)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
-        }
+}
         .padding(24)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var dataPane: some View {
@@ -211,8 +213,10 @@ struct SettingsView: View {
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
                 }
             }
+            Spacer()
         }
         .padding(24)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private func sourceDetailPane(_ src: OpenCodeSource) -> some View {
@@ -222,9 +226,10 @@ struct SettingsView: View {
             Divider()
             GroupBox {
                 VStack(alignment: .leading, spacing: 8) {
-                    detailRow("Type", current.kind == .opencodeDB ? "OpenCode DB" :
-                                    current.kind == .piSessions ? "Pi Sessions (JSONL)" :
-                                    current.kind == .openRouter ? "OpenRouter API" : "OpenCode Go DB")
+detailRow("Type", current.kind == .opencodeDB ? "OpenCode DB" :
+                            current.kind == .piSessions ? "Pi Sessions (JSONL)" :
+                            current.kind == .omPiSessions ? "Oh My Pi Sessions (JSONL)" :
+                            current.kind == .openRouter ? "OpenRouter API" : "OpenCode Go DB")
                     detailRow("Path", current.path)
                     if current.kind == .opencodeDB || current.kind == .openCodeGo {
                         if let attrs = try? FileManager.default.attributesOfItem(atPath: current.path) {
@@ -277,6 +282,7 @@ struct SettingsView: View {
             }
         }
         .padding(24)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var aboutPane: some View {
@@ -345,7 +351,7 @@ final class SettingsWindowController: NSWindowController {
 
     private convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 640, height: 500),
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 560),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false

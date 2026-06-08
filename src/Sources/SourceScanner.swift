@@ -16,6 +16,7 @@ struct OpenCodeSource: Codable, Identifiable, Equatable, Hashable {
 enum SourceKind: String, Codable {
     case opencodeDB
     case piSessions
+    case omPiSessions
     case openRouter
     case openCodeGo
 }
@@ -71,10 +72,10 @@ enum SourceScanner {
             existingPaths.insert(piSessions)
         }
 
-        // Oh My Pi agent sessions (same JSONL format)
-        let ompSessions = home.appendingPathComponent(".oh-my-pi/agent/sessions").path
+        // Oh My Pi agent sessions (same JSONL format, stored in ~/.omp)
+        let ompSessions = home.appendingPathComponent(".omp/agent/sessions").path
         if FileManager.default.fileExists(atPath: ompSessions), !existingPaths.contains(ompSessions) {
-            newlyFound.append(OpenCodeSource(path: ompSessions, label: "Oh My Pi", kind: .piSessions, enabled: true))
+            newlyFound.append(OpenCodeSource(path: ompSessions, label: "Oh My Pi", kind: .omPiSessions, enabled: true))
             existingPaths.insert(ompSessions)
         }
 

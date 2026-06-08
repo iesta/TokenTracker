@@ -112,7 +112,7 @@ final class StatsEngine: ObservableObject {
                 switch src.kind {
                 case .opencodeDB, .openCodeGo:
                     try ingestOpenCodeDB(dbPath: src.path, dayMap: &srcDayMap)
-                case .piSessions:
+                case .piSessions, .omPiSessions:
                     try ingestPiSessions(dirPath: src.path, dayMap: &srcDayMap)
                 case .openRouter:
                     if let key = src.apiKey, !key.isEmpty {
