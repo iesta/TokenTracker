@@ -2,6 +2,8 @@
 
 A macOS menu bar app that tracks AI coding tool usage from local databases. Displays costs, tokens, models, projects, languages, and per-origin breakdowns across multiple sources.
 
+<img src="docs/screenshot_panel.png" width="280" alt="TokenTracker panel" />
+
 ## Features
 
 - **Menu bar cost** — shows total spend for the selected time range (1d / 7d / 30d / 3m / All)
