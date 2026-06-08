@@ -122,7 +122,7 @@ struct PopoverView: View {
                 Button(action: { tab = t }) {
                     Text(t.rawValue)
                         .font(.system(size: 11.5, weight: tab == t ? .bold : .medium))
-                        .foregroundStyle(tab == t ? Color.accentColor : hoveredTab == t ? Color.primary : Color.secondary)
+                        .foregroundStyle(tab == t ? Color.accentColor : Color.secondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(alignment: .bottom) {
@@ -130,13 +130,14 @@ struct PopoverView: View {
                                 .fill(tab == t ? Color.accentColor : Color.clear)
                                 .frame(height: 2)
                         }
-                        .background(tab != t && hoveredTab == t ? Color.primary.opacity(0.06) : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            hoveredTab = hovering ? t : nil
+                        }
+                        .background(tab != t && hoveredTab == t ? Color.primary.opacity(0.08) : Color.clear)
+                        .animation(.easeOut(duration: 0.12), value: hoveredTab)
                 }
                 .buttonStyle(.plain)
-                .onHover { hovering in
-                    hoveredTab = hovering ? t : nil
-                }
             }
         }
         .padding(.horizontal, 8)

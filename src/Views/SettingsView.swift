@@ -8,7 +8,7 @@ enum SettingsPage: Hashable {
         switch self {
         case .general: return "General"
         case .currencies: return "Currencies"
-        case .data: return "Data"
+        case .data: return "Sources"
         case .source(let s): return s.label
         case .about: return "About"
         }
@@ -63,7 +63,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(NSColor.controlBackgroundColor))
         }
-        .frame(width: 600, height: 440)
+        .frame(width: 640, height: 500)
         .onAppear {
             customRate = String(format: "%.4f", SettingsStore.currencyRate)
             lastFetchText = CurrencyRates.lastFetchLabel
@@ -238,22 +238,23 @@ struct SettingsView: View {
                         detailRow("Session files", "\(count)")
                     } else if current.kind == .openRouter {
                         let hasKey = current.apiKey != nil && !current.apiKey!.isEmpty
-                        detailRow("API Key", hasKey ? "✓ Configured (env)" : "Not set")
-                        detailRow("Endpoint", "api.openrouter.ai/v1/auth/key")
-                        if !hasKey {
-                            SecureField("sk-or-v1-...", text: Binding(
-                                get: { current.apiKey ?? "" },
-                                set: { newKey in
-                                    let trimmed = newKey.trimmingCharacters(in: .whitespaces)
-                                    if !trimmed.isEmpty, let idx = sources.firstIndex(where: { $0.id == current.id }) {
-                                        sources[idx].apiKey = trimmed
-                                        SourceScanner.storedSources = sources
-                                    }
-                                }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 11, design: .monospaced))
-                            .frame(maxWidth: .infinity)
+                        let hasMgmt = current.mgmtKey != nil && !current.mgmtKey!.isEmpty
+                        detailRow("API Key", hasKey ? "✓ Set" : "Not set")
+                        detailRow("Endpoint", "api.openrouter.ai/v1/auth/key (totals)")
+                        keyField("sk-or-v1-...", currentKey: current.apiKey ?? "") { newKey in
+                            if let idx = sources.firstIndex(where: { $0.id == current.id }) {
+                                sources[idx].apiKey = newKey
+                                SourceScanner.storedSources = sources
+                            }
+                        }
+                        Divider().padding(.vertical, 4)
+                        detailRow("Mgmt Key", hasMgmt ? "✓ Set (detailed)" : "Not set")
+                        detailRow("Endpoint", "api.openrouter.ai/v1/activity (per-generation)")
+                        keyField("sk-or-mgmt-...", currentKey: current.mgmtKey ?? "") { newKey in
+                            if let idx = sources.firstIndex(where: { $0.id == current.id }) {
+                                sources[idx].mgmtKey = newKey
+                                SourceScanner.storedSources = sources
+                            }
                         }
                     }
                 }
@@ -324,6 +325,19 @@ struct SettingsView: View {
             }
         }
     }
+
+    private func keyField(_ placeholder: String, currentKey: String, onSet: @escaping (String) -> Void) -> some View {
+        SecureField(placeholder, text: Binding(
+            get: { currentKey },
+            set: { newKey in
+                let trimmed = newKey.trimmingCharacters(in: .whitespaces)
+                if !trimmed.isEmpty { onSet(trimmed) }
+            }
+        ))
+        .textFieldStyle(.roundedBorder)
+        .font(.system(size: 11, design: .monospaced))
+        .frame(maxWidth: .infinity)
+    }
 }
 
 final class SettingsWindowController: NSWindowController {
@@ -331,7 +345,7 @@ final class SettingsWindowController: NSWindowController {
 
     private convenience init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 600, height: 440),
+            contentRect: NSRect(x: 0, y: 0, width: 640, height: 500),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false

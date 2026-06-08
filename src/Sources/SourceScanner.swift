@@ -10,6 +10,7 @@ struct OpenCodeSource: Codable, Identifiable, Equatable, Hashable {
     let kind: SourceKind
     var enabled: Bool
     var apiKey: String?
+    var mgmtKey: String?
 }
 
 enum SourceKind: String, Codable {
@@ -68,6 +69,13 @@ enum SourceScanner {
         if FileManager.default.fileExists(atPath: piSessions), !existingPaths.contains(piSessions) {
             newlyFound.append(OpenCodeSource(path: piSessions, label: "Pi Agent", kind: .piSessions, enabled: true))
             existingPaths.insert(piSessions)
+        }
+
+        // Oh My Pi agent sessions (same JSONL format)
+        let ompSessions = home.appendingPathComponent(".oh-my-pi/agent/sessions").path
+        if FileManager.default.fileExists(atPath: ompSessions), !existingPaths.contains(ompSessions) {
+            newlyFound.append(OpenCodeSource(path: ompSessions, label: "Oh My Pi", kind: .piSessions, enabled: true))
+            existingPaths.insert(ompSessions)
         }
 
         let goDB = home.appendingPathComponent(".local/share/opencode-go/opencode.db").path
