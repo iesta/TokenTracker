@@ -115,3 +115,27 @@ enum TimeRange: String, CaseIterable, Identifiable {
         }
     }
 }
+
+enum DisplaySize: String, CaseIterable, Identifiable {
+    case regular = "Regular"
+    case large = "Large"
+    var id: String { rawValue }
+    var panelWidth: CGFloat {
+        switch self {
+        case .regular: return 500
+        case .large: return 640
+        }
+    }
+    var panelHeight: CGFloat {
+        switch self {
+        case .regular: return 672
+        case .large: return 860
+        }
+    }
+    var fontScale: CGFloat {
+        switch self {
+        case .regular: return 1.0
+        case .large: return 1.2
+        }
+    }
+}

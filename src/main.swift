@@ -21,8 +21,15 @@ struct PopoverView: View {
         let raw = UserDefaults.standard.string(forKey: "selectedRange") ?? ""
         return TimeRange(rawValue: raw) ?? .all
     }()
+    @AppStorage("displaySize") private var displaySize = DisplaySize.regular.rawValue
 
     private var summary: StatsSummary { engine.summary(for: range) }
+
+    private var ds: DisplaySize {
+        DisplaySize(rawValue: displaySize) ?? .regular
+    }
+
+    private func sz(_ base: CGFloat) -> CGFloat { base * ds.fontScale }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,7 +58,7 @@ struct PopoverView: View {
             Divider().opacity(0.5)
             footer
         }
-        .frame(width: 500, height: 672)
+        .frame(width: ds.panelWidth, height: ds.panelHeight)
         .onChange(of: range) { _, newValue in
             UserDefaults.standard.set(newValue.rawValue, forKey: "selectedRange")
         }
@@ -61,37 +68,37 @@ struct PopoverView: View {
     private var header: some View {
         HStack(spacing: 9) {
             Image(systemName: "t.square.fill")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: sz(20), weight: .bold))
                 .foregroundStyle(.tint)
             VStack(alignment: .leading, spacing: 0) {
                 Text("TokenTracker")
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: sz(14), weight: .bold))
                 if engine.loading {
-                    Text("Updating…").font(.system(size: 10)).foregroundStyle(.secondary)
+                    Text("Updating…").font(.system(size: sz(10))).foregroundStyle(.secondary)
                 } else if let d = engine.lastUpdated {
                     Text("Updated \(d.formatted(date: .omitted, time: .shortened))")
-                        .font(.system(size: 10)).foregroundStyle(.secondary)
+                        .font(.system(size: sz(10))).foregroundStyle(.secondary)
                 }
             }
             Spacer()
             rangePicker
             Button(action: onRefresh) {
                 Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: sz(12), weight: .semibold))
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .help("Rescan sessions")
             Button(action: onSettings) {
                 Image(systemName: "gearshape")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: sz(12), weight: .semibold))
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .help("Settings")
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 11)
+        .padding(.horizontal, sz(14))
+        .padding(.vertical, sz(11))
     }
 
     private var rangePicker: some View {
@@ -99,8 +106,8 @@ struct PopoverView: View {
             ForEach(TimeRange.allCases) { r in
                 Button(action: { withAnimation(.easeOut(duration: 0.15)) { range = r } }) {
                     Text(r.label)
-                        .font(.system(size: 10.5, weight: .semibold))
-                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .font(.system(size: sz(10.5), weight: .semibold))
+                        .padding(.horizontal, sz(7)).padding(.vertical, sz(3))
                         .foregroundStyle(range == r ? Color.white : Color.secondary)
                         .background(
                             RoundedRectangle(cornerRadius: 5, style: .continuous)
@@ -110,7 +117,7 @@ struct PopoverView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(2)
+        .padding(sz(2))
         .background(RoundedRectangle(cornerRadius: 7, style: .continuous)
             .fill(Color.primary.opacity(0.06)))
     }
@@ -121,10 +128,10 @@ struct PopoverView: View {
             ForEach(visibleTabs) { t in
                 Button(action: { tab = t }) {
                     Text(t.rawValue)
-                        .font(.system(size: 11.5, weight: tab == t ? .bold : .medium))
+                        .font(.system(size: sz(11.5), weight: tab == t ? .bold : .medium))
                         .foregroundStyle(tab == t ? Color.accentColor : Color.secondary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, sz(8))
                         .background(alignment: .bottom) {
                             Rectangle()
                                 .fill(tab == t ? Color.accentColor : Color.clear)
@@ -140,7 +147,7 @@ struct PopoverView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, sz(8))
     }
 
     private var visibleTabs: [Tab] {
@@ -192,7 +199,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var refreshTimer: Timer?
     private var keyMonitor: Any?
 
-    private let panelSize = NSSize(width: 500, height: 672)
+    private var panelSize: NSSize {
+        let size = UserDefaults.standard.string(forKey: "displaySize").flatMap { DisplaySize(rawValue: $0) } ?? .regular
+        return NSSize(width: size.panelWidth, height: size.panelHeight)
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)

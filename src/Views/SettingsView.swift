@@ -100,6 +100,26 @@ struct SettingsView: View {
                 }
                 .padding(8)
             }
+            GroupBox {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Display Size").font(.system(size: 12, weight: .medium))
+                    Picker("", selection: .init(
+                        get: { UserDefaults.standard.string(forKey: "displaySize") ?? "Regular" },
+                        set: { UserDefaults.standard.set($0, forKey: "displaySize") }
+                    )) {
+                        ForEach(DisplaySize.allCases) { size in
+                            Text(size.rawValue).tag(size.rawValue)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 200)
+                    Text("Large makes the panel 28% wider and taller, with scaled fonts.")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(8)
+            }
             Spacer()
         }
         .padding(24)
