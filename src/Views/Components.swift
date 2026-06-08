@@ -367,7 +367,11 @@ struct HourlySpendChart: View {
 struct PieChart: View {
     let data: [(label: String, value: Int, color: Color)]
     @State private var selectedIndex: Int?
+    @AppStorage("displaySize") private var displaySize = DisplaySize.regular.rawValue
 
+    private var ds: DisplaySize { DisplaySize(rawValue: displaySize) ?? .regular }
+    private var donutSize: CGFloat { 180 * ds.fontScale }
+    private var innerSize: CGFloat { 70 * ds.fontScale }
     private var total: Int { data.reduce(0) { $0 + $1.value } }
 
     var body: some View {
@@ -386,18 +390,18 @@ struct PieChart: View {
                         }
                     }
                 }
-                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: 110, height: 110)
+                Circle().fill(Color(NSColor.controlBackgroundColor)).frame(width: innerSize, height: innerSize)
                 if let idx = selectedIndex {
                     let item = data[idx]
                     VStack(spacing: 0) {
-                        Text("\(pct(item.value))%").font(.system(size: 24, weight: .bold)).foregroundStyle(item.color)
-                        Text("\(Fmt.int(item.value))").font(.system(size: 14, weight: .medium)).foregroundStyle(.secondary)
+                        Text("\(pct(item.value))%").font(.system(size: 20 * ds.fontScale, weight: .bold)).foregroundStyle(item.color)
+                        Text("\(Fmt.int(item.value))").font(.system(size: 12 * ds.fontScale, weight: .medium)).foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("\(Fmt.int(total))").font(.system(size: 24, weight: .bold))
+                    Text("\(Fmt.int(total))").font(.system(size: 20 * ds.fontScale, weight: .bold))
                 }
             }
-            .frame(width: 280, height: 280)
+            .frame(width: donutSize, height: donutSize)
 
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(data.prefix(8).enumerated()), id: \.offset) { idx, item in
