@@ -132,7 +132,7 @@ enum DisplaySize: String, CaseIterable, Identifiable {
         switch self {
         case .regular: return 672
         case .large: return 860
-        case .xl: return 1040
+        case .xl: return 920
         }
     }
     var fontScale: CGFloat {

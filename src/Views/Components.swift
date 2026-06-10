@@ -379,8 +379,8 @@ struct PieChart: View {
     private func sliceColor(_ idx: Int) -> Color { funColors[idx % funColors.count] }
 
     private var ds: DisplaySize { DisplaySize(rawValue: displaySize) ?? .regular }
-    private var donutSize: CGFloat { 180 * ds.fontScale }
-    private var innerSize: CGFloat { 70 * ds.fontScale }
+    private var donutSize: CGFloat { 160 * ds.fontScale }
+    private var innerSize: CGFloat { 60 * ds.fontScale }
     private var total: Int { data.reduce(0) { $0 + $1.value } }
 
     var body: some View {
