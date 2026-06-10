@@ -56,7 +56,7 @@ struct TechTab: View {
                 SectionHeader(title: "Tech Used", trailing: "\(Fmt.int(totalCount)) calls")
                 PieChart(data: s.languages.map { ($0.name, $0.count, $0.color) })
                     .frame(height: 220)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 10)
                 VStack(spacing: 8) {
                     ForEach(Array(s.languages.enumerated()), id: \.element.id) { idx, l in
                         BarRow(rank: idx + 1, icon: l.symbol, color: l.color, title: l.name,
@@ -147,7 +147,7 @@ struct ModelsTab: View {
                 SectionHeader(title: "Models", trailing: "by cost")
                 PieChart(data: s.models.map { ($0.displayName, $0.count, modelColor($0.name)) })
                     .frame(height: 220)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 10)
                 VStack(spacing: 8) {
                     ForEach(Array(s.models.enumerated()), id: \.element.id) { idx, m in
                         BarRow(rank: idx + 1, icon: "cpu", color: modelColor(m.name),
